@@ -1,0 +1,13 @@
+---
+layout: post
+title:  "LaTeX OCR"
+# date:   2022-05-02 13:34:04 +0900
+# categories: jekyll update
+# published: false
+---
+
+# LaTeX OCR Project
+
+This is my project to extract LaTeX source code from image of (printed) equations.
+
+Interactive demo is available [here](https://huggingface.co/spaces/yhshin/latex-ocr).
