@@ -329,8 +329,148 @@ random.seed(0)
 ```
 
 # Pytorch Lightning
+## Introduction
+See [here](https://pytorch-lightning.readthedocs.io/en/stable/starter/introduction.html).
+The documentation page in general has tons of useful tricks.
+
+## Rapid prototyping template
+Adapted from [here](https://pytorch-lightning.readthedocs.io/en/stable/starter/introduction.html#starter-templates).
+Use `bolts` for dummy dataset.
+Remove if unnecessary.
+
+### Install packages if necessary
+```python
+# ! pip install pytorch-lightning
+# ! pip install pytorch-lightning-bolts
+```
+
+```python
+import os
+
+import torch
+from torch import nn
+from torch.nn import functional as F
+from torch.utils.data import DataLoader, random_split
+from torchvision.datasets import MNIST
+from torchvision import transforms
+import pytorch_lightning as pl
+from pytorch_lightning.metrics.functional import accuracy
+from pl_bolts.datasets import DummyDataset
+
+################
+# Define data
+################
+train = DummyDataset((1, 28, 28), (1,))
+train = DataLoader(train, batch_size=32)
+
+val = DummyDataset((1, 28, 28), (1,))
+val = DataLoader(val, batch_size=32)
+
+test = DummyDataset((1, 28, 28), (1,))
+test = DataLoader(test, batch_size=32)
+
+################
+# Define model
+################
+class LitAutoEncoder(pl.LightningModule):
+
+    def __init__(self):
+        super().__init__()
+        self.encoder = nn.Sequential(nn.Linear(28 * 28, 128), nn.ReLU(), nn.Linear(128, 3))
+        self.decoder = nn.Sequential(nn.Linear(3, 128), nn.ReLU(), nn.Linear(128, 28 * 28))
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        x = x.view(x.size(0), -1)
+        z = self.encoder(x)
+        x_hat = self.decoder(z)
+        loss = F.mse_loss(x_hat, x)
+        self.log('train_loss', loss)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        x = x.view(x.size(0), -1)
+        z = self.encoder(x)
+        x_hat = self.decoder(z)
+        loss = F.mse_loss(x_hat, x)
+        self.log('val_loss', loss)
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        x = x.view(x.size(0), -1)
+        z = self.encoder(x)
+        x_hat = self.decoder(z)
+        loss = F.mse_loss(x_hat, x)
+        self.log('test_loss', loss)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        return optimizer
+
+################
+# Train
+################
+model = LitAutoEncoder()
+trainer = pl.Trainer(gpus=1, max_epochs=3, progress_bar_refresh_rate=20)
+trainer.fit(model, train, val)
+
+################
+# Test
+################
+trainer.test(test_dataloaders=test)
+
+```
+
+### Visualize training results
+Lightning automatically logs metrics when you can `self.log()`.
+Default logger is TensorBoard which you can call on the command line with:
+`tensorboard --logdir lightning_logs/`
+or use the following ipython extension to view logs in notebook.
+```python
+%load_ext tensorboard
+%tensorboard --logdir lightning_logs/
+```
+### Other optional features to consider
+- Callbacks for better monitoring, saving checkpoints, etc.
+- Config object
+- LR Scheduler
+- Accelerator, e.g. GPU
+- Lightning `DataModule`
+
+
+## Deep learning template
+Generate from [here](https://github.com/PyTorchLightning/deep-learning-project-template).
+This comes with `setup.py`, `setup.cfg` and `requirements.txt`.
+
 ## Misc. comments
 - `LightningModule.training_step(self, batch, batch_idx)` must return `loss` as a tensor or a dictionary containing an entry `'loss'`.
   - This is so that backpropagation can be performed on the loss object.
-- `training_step`, `validation_step`, etc can also return quantities to be calculated at epoch-level. `training_epoch_end` is passed a list of all batch-level outputs, and can be overridden for epoch-level operations. See for example: https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#train-epoch-level-operations
+- `training_step`, `validation_step`, etc can also return quantities to be calculated at epoch-level. `training_epoch_end` is passed a list of all batch-level outputs, and can be overridden for epoch-level operations. See [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#train-epoch-level-operations) for example.
 - Regarding `Callbacks`: `torch.no_grad()` and `pl_module.eval()` is unnecessary in validation steps since Lightning turns it on automatically.
+
+# Baseline config for new experiments
+```python
+class cfg:
+    # Flags
+    DEBUG = False
+    # Data
+    root_dir = 'data'
+    # General settings
+    seed = 42 # Seed for random number generators
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # Trainer settings
+    train_split = 0.8
+    batch_size = 16
+    num_workers = 4 # For DataLoader
+    lr = 1e-3 # Starting learning rate
+    # Model-specific
+    model_name = 'tf_efficientnetv2_s_in21k' # Pretrained model
+    pretrained = True
+    img_size = 300 # Resize image to size
+    # Store useful derived variables and objects here
+    num_classes = None
+    steps_per_epoch = None
+    label_encoder = None # Cultivar label to integer
+    data_size = None # Number of images for train + validation
+```
