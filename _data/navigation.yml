@@ -1,6 +1,8 @@
 main:
   # - title: "Posts"
   #   url: /posts/
+  - title: "한국어"
+    url: /categories/#한국어
   - title: "Categories"
     url: /categories/
   - title: "Tags"

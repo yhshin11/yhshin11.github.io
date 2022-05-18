@@ -42,4 +42,4 @@ The `.py` files can be synchronized to `.ipynb` notebooks, so you can see the ch
 ## Pandoc
 [Pandoc](https://pandoc.org/) is a tool that lets you convert simple documents between markup formats, e.g. markdown, html, LaTeX.
 I'm a big believer in keeping personal notes in plain text documents (markdown in my case) for better searchability.
-I use Pandoc to transform these notes into various useful formats, even PDF, Word and PowerPoint documents.
+I use Pandoc to transform these notes into various useful formats, including PDF, Word and PowerPoint documents.
