@@ -12,7 +12,7 @@
 #     display_name: Python 3
 #     language: python
 #     name: python3
-title: ""
+title: "PyTorch"
 # permalink: /notes/quick-start-guide/
 # excerpt: "How to quickly install and setup Minimal Mistakes for use with GitHub Pages."
 last_modified_at: 2020-07-27
