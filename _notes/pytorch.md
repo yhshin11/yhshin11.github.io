@@ -1,5 +1,4 @@
 ---
-layout: single
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: incorrectly_encoded_metadata,-all
@@ -19,6 +18,10 @@ title: ""
 last_modified_at: 2020-07-27
 # redirect_from:
 #   - /theme-setup/
+# layout: single
+classes: wide
+author_profile: false
+share: false
 toc: true
 ---
 
@@ -342,8 +345,10 @@ Remove if unnecessary.
 ```python
 # ! pip install pytorch-lightning
 # ! pip install pytorch-lightning-bolts
+# ! pip install torchmetrics
 ```
 
+### Basic template
 ```python
 import os
 
