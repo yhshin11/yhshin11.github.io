@@ -220,6 +220,18 @@ print(activation['fc2'])
 
 ## Cheatsheet
 [Link](https://pytorch.org/tutorials/beginner/ptcheat.html) to official cheatsheet
+
+# Data-related
+## Train/val split
+```python
+from torch.utils.data.dataset import random_split
+num_train = int(len(train_dataset) * cfg.train_split)
+split_train_, split_valid_ = random_split(train_dataset, [num_train, len(train_dataset) - num_train])
+train_dataloader = DataLoader(split_train_, batch_size=BATCH_SIZE,
+                              shuffle=True, collate_fn=collate_batch)
+valid_dataloader = DataLoader(split_valid_, batch_size=BATCH_SIZE,
+                              shuffle=True, collate_fn=collate_batch)
+```
   
 
 ## Misc
@@ -469,6 +481,7 @@ class cfg:
     batch_size = 16
     num_workers = 4 # For DataLoader
     lr = 1e-3 # Starting learning rate
+    accum = 1 # Accumulate gradient batches in trainer
     # Model-specific
     model_name = 'tf_efficientnetv2_s_in21k' # Pretrained model
     pretrained = True
