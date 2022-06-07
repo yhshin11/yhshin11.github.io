@@ -1,10 +1,6 @@
 ---
 title: "Plotting"
-last_modified_at: 2020-07-27
-classes: wide
-author_profile: false
-share: false
-toc: true
+excerpt: ""
 ---
 
 # Standard boiler plate

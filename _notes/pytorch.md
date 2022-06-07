@@ -1,34 +1,13 @@
 ---
-# jupyter:
-#   jupytext:
-#     cell_metadata_filter: incorrectly_encoded_metadata,-all
-#     cell_metadata_json: true
-#     text_representation:
-#       extension: .md
-#       format_name: markdown
-#       format_version: '1.3'
-#       jupytext_version: 1.11.3
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
-title: "PyTorch"
-# permalink: /notes/quick-start-guide/
-# excerpt: "How to quickly install and setup Minimal Mistakes for use with GitHub Pages."
+title: "PyTorch and PyTorch Lightning"
+excerpt: ""
 last_modified_at: 2020-07-27
-# redirect_from:
-#   - /theme-setup/
-# layout: single
-classes: wide
-author_profile: false
-share: false
-toc: true
 ---
 
 # PyTorch
 
 ## Quickstart
-Link to [quickstart](https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html).
+See quickstart [here](https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html).
 ### Imports
 ```python
 import torch
@@ -221,7 +200,7 @@ print(activation['fc2'])
 ## Cheatsheet
 [Link](https://pytorch.org/tutorials/beginner/ptcheat.html) to official cheatsheet
 
-# Data-related
+# Data
 ## Train/val split
 ```python
 from torch.utils.data.dataset import random_split
@@ -342,6 +321,31 @@ torch.manual_seed(seed)
 import random
 random.seed(0)
 ```
+### Visualizing intermediate layer outputs
+Cleanest way is to use [`nn.Module.register_forward_hook()`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.register_forward_hook).
+```python
+# Dictionary to store activations
+activation = {}
+def get_activation(name):
+    # Create a hook to store activation of selected layer in dictionary
+    def hook(model, input, output):
+        activation[name] = output.detach()
+    return hook
+
+model = MyModel()
+model.fc2.register_forward_hook(get_activation('fc2'))
+x = torch.randn(1, 25)
+output = model(x)
+print(activation['fc2'])
+```
+
+See
+[here](https://web.stanford.edu/~nanbhas/blog/forward-hooks-pytorch/#forward-hooks-101),
+[here](https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/05/27/extracting-features.html) for more detailed explanation.
+
+See
+[here](https://github.com/utkuozbulak/pytorch-cnn-visualizations/blob/master/src/cnn_layer_visualization.py)
+for more sophisticated implementation.
 
 # Pytorch Lightning
 ## Introduction
@@ -460,6 +464,45 @@ or use the following ipython extension to view logs in notebook.
 Generate from [here](https://github.com/PyTorchLightning/deep-learning-project-template).
 This comes with `setup.py`, `setup.cfg` and `requirements.txt`.
 
+## Callbacks
+Built-in callbacks are listed [here](https://pytorch-lightning.readthedocs.io/en/stable/extensions/callbacks.html#built-in-callbacks)
+### Simple printing callback
+This is useful for monitoring long running kaggle kernels since kaggle logs do not show progress bar.
+```python
+from pytorch_lightning.callbacks import Callback
+
+class MyPrintingCallback(Callback):
+    def on_train_epoch_start(self, trainer, pl_module):
+        epoch = pl_module.current_epoch
+        print(f"Begin training epoch: {epoch}")
+    def on_train_epoch_end(self, trainer, pl_module):
+        epoch = pl_module.current_epoch
+        print(f"Finished training epoch: {epoch}")
+```
+### `ModelCheckpoint`
+```python
+from pytorch_lightning.callbacks import ModelCheckpoint
+
+# saves top-K checkpoints based on "val_loss" metric
+checkpoint_callback = ModelCheckpoint(
+    save_top_k=10,
+    monitor="val_loss",
+    mode="min",
+    dirpath="my/path/",
+    filename="sample-mnist-{epoch:02d}-{val_loss:.2f}",
+)
+
+# saves last-K checkpoints based on "global_step" metric
+# make sure you log it inside your LightningModule
+checkpoint_callback = ModelCheckpoint(
+    save_top_k=10,
+    monitor="global_step",
+    mode="max",
+    dirpath="my/path/",
+    filename="sample-mnist-{epoch:02d}-{global_step}",
+)
+```
+
 ## Misc. comments
 - `LightningModule.training_step(self, batch, batch_idx)` must return `loss` as a tensor or a dictionary containing an entry `'loss'`.
   - This is so that backpropagation can be performed on the loss object.
@@ -492,3 +535,11 @@ class cfg:
     label_encoder = None # Cultivar label to integer
     data_size = None # Number of images for train + validation
 ```
+
+# `timm`
+## References
+- [Offical docs](https://rwightman.github.io/pytorch-image-models/)
+- [Github](https://github.com/rwightman/pytorch-image-models)
+- [`timmdocs`](https://timm.fast.ai/)
+- [Useful blog post](https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-practitioners-guide-4e77b4bf9055#8549)
+    - Explains usage
